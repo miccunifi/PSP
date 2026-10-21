@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PSP Animated Overview</title>
+<meta name="description" content="Animated overview of Hyperspherical Simplex Representations for Backward-Compatible Retrieval.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/fontawesome.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/solid.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; height: 100%; background: #faf6ee; }
+  body { display: grid; place-items: center; font: 14px Inter, sans-serif; color: #5f6b7b; }
+  canvas { display: block; width: min(100vw, 177.78vh); height: auto; aspect-ratio: 16 / 9; cursor: pointer; }
+  #hint { position: fixed; bottom: 10px; left: 0; right: 0; text-align: center; opacity: .7; }
+  body.still #hint { display: none; }
+</style>
+</head>
+<body>
+<canvas id="anim" aria-label="Animated overview of the paper"></canvas>
+<div id="hint">Click to pause or play · ← → to skip 5 s · click a chapter to jump · <a href="./">back to the project page</a></div>
+<script src="static/js/psp-anim.js"></script>
+<script>
+/* Modes:
+ *   animation.html                  live player
+ *   animation.html?t=12.5           a single still frame at t = 12.5 s (used for screenshots)
+ *   animation.html?export=1&fps=30  renders every frame and POSTs it to tools/render_video.py */
+const q = new URLSearchParams(location.search), canvas = document.getElementById('anim');
+window.onerror = (m, src, l) => { document.title = 'ERROR ' + m + ' @' + l; };
+PSPAnim.fontsReady().then(async () => {
+  if (q.has('export')) {
+    document.body.classList.add('still');
+    const fps = +(q.get('fps') || 30), w = +(q.get('w') || 1920), from = +(q.get('from') || 0), to = +(q.get('to') || PSPAnim.duration);
+    canvas.style.width = '100vw';
+    canvas.width = w; canvas.height = Math.round(w * 9 / 16);
+    const ctx = canvas.getContext('2d'), s = w / PSPAnim.W;
+    const n0 = Math.round(from * fps), n1 = Math.floor(to * fps);
+    for (let i = n0; i < n1; i++) {
+      ctx.setTransform(s, 0, 0, s, 0, 0);
+      PSPAnim.render(ctx, i / fps);
+      const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+      await fetch('/frame?i=' + (i - n0), { method: 'POST', body: blob });
+    }
+    await fetch('/done', { method: 'POST' });
+    document.title = 'DONE';
+    return;
+  }
+  const still = q.has('t');
+  if (still) document.body.classList.add('still');
+  const anim = PSPAnim.create(canvas, { start: still ? +q.get('t') : 0, scale: still ? +(q.get('scale') || 1) : undefined });
+  if (still) { document.title = 'READY'; return; }
+  canvas.addEventListener('click', e => {
+    const r = canvas.getBoundingClientRect(), t = anim.tabAt(e.clientX - r.left, e.clientY - r.top);
+    if (t != null) { anim.seek(t); anim.play(); } else anim.toggle();
+  });
+  addEventListener('keydown', e => {
+    if (e.key === ' ') { anim.toggle(); e.preventDefault(); }
+    if (e.key === 'ArrowRight') anim.seek(anim.time + 5);
+    if (e.key === 'ArrowLeft') anim.seek(anim.time - 5);
+  });
+  addEventListener('resize', () => anim.resize());
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) anim.play();
+});
+</script>
+</body>
+</html>

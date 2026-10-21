@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hyperspherical Simplex Representations for Backward-Compatible Retrieval</title>
+<meta name="description" content="Backward-compatible retrieval across independently trained models from the simplex geometry of softmax outputs and logits (PSP / LSP), with a compatibility theorem on the hypersphere.">
+<meta name="color-scheme" content="light">
+<meta property="og:title" content="Hyperspherical Simplex Representations for Backward-Compatible Retrieval">
+<meta property="og:description" content="Backward-compatible retrieval from the simplex geometry of the softmax: no compatibility losses, no learned mappings, no architecture changes.">
+<meta property="og:image" content="https://miccunifi.github.io/PSP/static/videos/psp-overview.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="citation_title" content="Hyperspherical Simplex Representations for Backward-Compatible Retrieval">
+<meta name="citation_author" content="Ricci, Simone">
+<meta name="citation_author" content="Biondi, Niccolò">
+<meta name="citation_author" content="Pernici, Federico">
+<meta name="citation_author" content="Del Bimbo, Alberto">
+<meta name="citation_arxiv_id" content="XXXX.XXXXX">
+<meta name="citation_pdf_url" content="https://arxiv.org/pdf/XXXX.XXXXX">
+<meta name="citation_publication_date" content="2026">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%23e6f0fa' stroke='%233a86c8' stroke-width='3'/%3E%3Cpath d='M32 32V8M32 32L11 44M32 32l21 12' stroke-width='4' stroke-linecap='round' fill='none' stroke='%231e2b3a'/%3E%3Ccircle cx='32' cy='8' r='5' fill='%232f9e6e'/%3E%3Ccircle cx='11' cy='44' r='5' fill='%23d64f45'/%3E%3Ccircle cx='53' cy='44' r='5' fill='%233a7fc8'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/fontawesome.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/solid.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}]})"></script>
+<style>
+:root {
+  --bg: #faf6ee;
+  --surface: #fffdf9;
+  --ink: #1e2b3a;
+  --muted: #5f6b7b;
+  --faint: #9aa4b1;
+  --line: #e9e1d2;
+  --blue: #3a86c8;
+  --blue-deep: #245f96;
+  --blue-soft: #e6f0fa;
+  --old: #d08a2e;
+  --old-soft: #fbeedb;
+  --neu: #7b5fc6;
+  --neu-soft: #f3effb;
+  --c1: #d64f45;
+  --c2: #3a7fc8;
+  --c3: #2f9e6e;
+  --good: #3e9b6a;
+  --bad: #c9563f;
+  --shadow: 0 1px 2px rgba(60, 50, 30, .05), 0 12px 32px rgba(60, 50, 30, .06);
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 17px/1.65 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1000px; margin: 0 auto; padding: 0 16px; }
+a { color: var(--blue-deep); }
+header { padding: 64px 0 30px; text-align: center; }
+.venue {
+  display: inline-block;
+  font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--blue-deep); background: var(--blue-soft); border: 1px solid #cfe1f3;
+  padding: 4px 13px; border-radius: 999px;
+}
+h1 {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1.14;
+  margin: 18px auto 10px;
+  max-width: 860px;
+  letter-spacing: -.012em;
+}
+.subtitle { font-family: "Source Serif 4", Georgia, serif; font-style: italic; color: var(--muted); font-size: 20px; margin: 0 auto 26px; max-width: 760px; line-height: 1.5; }
+.authors { margin: 0 auto; font-size: 17px; }
+.authors a, .authors span { display: inline-block; margin: 2px 12px; white-space: nowrap; color: var(--ink); text-decoration: none; }
+.authors a:hover { color: var(--blue-deep); text-decoration: underline; }
+sup { font-size: .68em; color: var(--muted); }
+.affil { color: var(--muted); font-size: 14.5px; margin-top: 10px; }
+.affil span { display: inline-block; margin: 0 10px; }
+.links { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 28px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 18px; border-radius: 999px;
+  background: var(--ink); color: var(--bg);
+  text-decoration: none; font-weight: 500; font-size: 15px;
+  transition: background .15s;
+}
+.btn:hover { background: var(--blue-deep); }
+.btn svg { width: 17px; height: 17px; fill: currentColor; }
+.btn.soon { background: #d9d3c6; color: #5f6b7b; cursor: default; }
+.btn.soon small { font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); padding: 14px; }
+figure { margin: 0; }
+.card img { display: block; width: 100%; height: auto; border-radius: 8px; background: #fff; }
+figcaption { color: var(--muted); font-size: 14.5px; margin-top: 12px; line-height: 1.55; }
+
+/* animation player */
+.player { padding: 10px; }
+.player canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border-radius: 10px; background: var(--bg); cursor: pointer; }
+.pbar { display: flex; align-items: center; gap: 10px; padding: 10px 4px 2px; flex-wrap: wrap; }
+.pp { width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--ink); color: #fff; font-size: 13px; cursor: pointer; flex: none; }
+.pp:focus-visible, .chap button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.chap { display: flex; gap: 4px; flex-wrap: wrap; }
+.chap button { font: 600 12.5px Inter, sans-serif; letter-spacing: .05em; text-transform: uppercase; border: 1px solid var(--line); background: #fff; color: var(--muted); padding: 5px 10px; border-radius: 999px; cursor: pointer; }
+.chap button[aria-current="true"] { background: var(--blue-soft); color: var(--blue-deep); border-color: #cfe1f3; }
+.scrub { flex: 1 1 160px; min-width: 120px; accent-color: var(--blue); }
+.pbar .ext { font-size: 13.5px; color: var(--muted); text-decoration: none; white-space: nowrap; }
+.pbar .ext:hover { color: var(--blue-deep); text-decoration: underline; }
+.time { font: 500 13px Inter, sans-serif; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 78px; text-align: right; }
+
+.tldr { font-size: 18px; text-align: center; max-width: 820px; margin: 26px auto 0; }
+.tldr b { color: var(--blue-deep); }
+section { padding: 44px 0 6px; }
+h2 { font-family: "Source Serif 4", Georgia, serif; font-weight: 600; font-size: 28px; margin: 0 0 14px; letter-spacing: -.005em; }
+h3 { font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: var(--blue-deep); margin: 30px 0 10px; }
+p { margin: 0 0 14px; }
+.lead { font-size: 18px; }
+.muted { color: var(--muted); }
+.small { font-size: 14.5px; }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 22px 0 10px; }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+.step .n { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--blue-soft); color: var(--blue-deep); font-weight: 700; font-size: 13px; margin-right: 8px; }
+.step b { font-size: 15px; letter-spacing: .04em; text-transform: uppercase; color: var(--blue-deep); }
+.step p { margin: 8px 0 0; font-size: 15.5px; color: var(--muted); }
+.eq { overflow-x: auto; overflow-y: hidden; padding: 8px 0; }
+.box { border-radius: 14px; padding: 16px 20px; margin: 16px 0; }
+.box .lbl { display: block; font-size: 12.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; }
+.def { background: var(--surface); border: 1px solid var(--line); }
+.def .lbl { color: var(--blue-deep); }
+.assume { background: #fdf6ea; border: 1px solid #f1e0c2; }
+.assume .lbl { color: #a86b17; }
+.theorem { background: var(--neu-soft); border: 1px solid #ddd3f3; }
+.theorem .lbl { color: var(--neu); }
+.box ol { margin: 4px 0 0; padding-left: 26px; }
+.box li { margin: 4px 0; }
+.two { display: grid; grid-template-columns: 1.15fr 1fr; gap: 26px; align-items: start; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 20px 0; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.stat .val { font-family: "Source Serif 4", Georgia, serif; font-size: 30px; font-weight: 600; line-height: 1.2; color: var(--ink); white-space: nowrap; }
+.stat .val s { color: var(--faint); font-size: 20px; margin-right: 6px; text-decoration: none; }
+.stat .val s::after { content: " →"; }
+.stat .k { color: var(--muted); font-size: 14px; line-height: 1.45; margin-top: 4px; }
+
+/* interactive panels */
+.explorer { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); padding: 18px 20px 16px; margin-top: 16px; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin-bottom: 8px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: #fff; flex-wrap: wrap; }
+.seg button { font: 500 14px Inter, sans-serif; border: 0; background: transparent; color: var(--muted); padding: 6px 12px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--blue-soft); color: var(--blue-deep); font-weight: 600; }
+.seg button:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+.ctl-label { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; margin-right: 6px; }
+.thx { display: grid; grid-template-columns: 330px 1fr; gap: 22px; align-items: start; }
+#thsvg { width: 100%; height: auto; display: block; }
+#thsvg text { font-family: "Source Serif 4", Georgia, serif; }
+.sliders { display: grid; grid-template-columns: auto 1fr auto; gap: 6px 12px; align-items: center; margin: 4px 0 12px; font-size: 15px; }
+.sliders input[type=range] { width: 100%; accent-color: var(--neu); }
+.sliders output { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 64px; text-align: right; font-size: 14.5px; }
+.gauge { border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin-bottom: 10px; background: #fff; }
+.gauge.ok { border-color: #c7e6d4; }
+.gauge.no { border-color: #f1c9bf; }
+.gauge .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 15px; }
+.gauge .top b { font-weight: 600; }
+.gauge .st { font-size: 13.5px; font-weight: 700; }
+.gauge.ok .st { color: var(--good); } .gauge.no .st { color: var(--bad); }
+.bar { display: grid; grid-template-columns: 82px 1fr 52px; align-items: center; gap: 8px; font-size: 13.5px; margin-top: 6px; }
+.bar .tr { height: 12px; border-radius: 6px; background: #eef1f5; overflow: hidden; }
+.bar .fl { height: 100%; border-radius: 6px; }
+.bar .num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.pill { font-size: 14px; border-radius: 999px; padding: 5px 12px; border: 1px solid var(--line); background: #fff; }
+.pill.ok { background: #e3f3ea; border-color: #c7e6d4; color: #2c7a51; }
+.pill.no { background: #fbe6e1; border-color: #f1c9bf; color: #a5432f; }
+
+/* compatibility matrix */
+.mx { display: grid; grid-template-columns: 1fr 230px; gap: 22px; align-items: center; }
+#matrix { width: 100%; height: auto; display: block; }
+#matrix text { font-family: Inter, sans-serif; }
+
+/* tables */
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { width: 100%; border-collapse: collapse; font-size: 14.5px; font-variant-numeric: tabular-nums; min-width: 720px; }
+th, td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: center; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+thead th { font-weight: 600; color: var(--muted); font-size: 13.5px; }
+tr.ours td { font-weight: 600; background: #e9f1fa; }
+tr.sub td { font-weight: 400; color: var(--muted); }
+td.best { color: #14148f; font-weight: 700; }
+td.second { color: #4169e1; font-weight: 700; }
+table.compact { min-width: 520px; }
+pre {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  padding: 16px 18px; overflow-x: auto; margin: 0;
+  font: 13.5px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.cite { position: relative; }
+.copy { position: absolute; top: 10px; right: 10px; font: 500 13px Inter, sans-serif; padding: 4px 11px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer; }
+ul.clean { padding-left: 20px; margin: 0 0 14px; }
+ul.clean li { margin: 6px 0; }
+.ar { font-family: KaTeX_Main, 'Times New Roman', serif; }
+footer { color: var(--muted); font-size: 14px; text-align: center; padding: 52px 0 40px; }
+@media (max-width: 820px) {
+  .thx, .mx { grid-template-columns: 1fr; }
+  .thx svg { max-width: 330px; margin: 0 auto; }
+}
+@media (max-width: 760px) {
+  header { padding-top: 40px; }
+  .steps, .two { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: 1fr 1fr; }
+  .card { padding: 8px; }
+  body { font-size: 16px; }
+  .explorer { padding: 14px 12px 12px; }
+  .stat { padding: 12px; }
+  .stat .val { font-size: 23px; }
+  .stat .val s { font-size: 15px; margin-right: 3px; }
+  .eq .katex-display { font-size: .92em; }
+  .pbar .ext { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="venue">arXiv</span>
+    <h1>Hyperspherical Simplex Representations for Backward-Compatible Retrieval</h1>
+    <p class="subtitle">Softmax outputs and logits of independently trained models share a simplex geometry fixed by the label space. We turn it into backward-compatible features, with no compatibility training.</p>
+    <div class="authors">
+      <a href="https://scholar.google.com/citations?user=jtj_lhAAAAAJ">Simone Ricci<sup>*</sup></a>
+      <a href="https://scholar.google.com/citations?user=B7VHm9UAAAAJ">Niccolò Biondi<sup>*</sup></a>
+      <a href="https://scholar.google.com/citations?user=I8nFKUsAAAAJ">Federico Pernici</a>
+      <span>Alberto Del Bimbo</span>
+    </div>
+    <div class="affil">
+      <span>Media Integration and Communication Center (MICC), University of Florence</span>
+      <span><sup>*</sup>equal contribution</span>
+    </div>
+    <div class="links">
+      <!-- TODO: set href="https://arxiv.org/abs/XXXX.XXXXX" and switch the class from "btn soon" to "btn" -->
+      <a class="btn soon" aria-disabled="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v15H6zM14 3.5V8h4.5z"/></svg>Paper <small>soon</small></a>
+      <a class="btn" href="https://github.com/miccunifi/PSP"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.4c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.39-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg>Code <small style="font-size:11.5px;opacity:.75;letter-spacing:.06em;text-transform:uppercase">soon</small></a>
+      <a class="btn" href="static/videos/psp-overview.mp4"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>Video</a>
+    </div>
+  </header>
+
+  <figure class="card player" id="player">
+    <canvas id="anim" width="1600" height="900" role="img" aria-label="Animated overview of the paper: a retrieval example of a model update, backward compatibility, logits and softmax outputs during training, PSP and LSP, the shared reference, class expansion, vMF class distributions, the compatibility theorem, top-k sparsification, results, and summary"></canvas>
+    <noscript><video controls muted playsinline poster="static/videos/psp-overview.jpg" style="width:100%;border-radius:10px"><source src="static/videos/psp-overview.webm" type="video/webm"><source src="static/videos/psp-overview.mp4" type="video/mp4"></video></noscript>
+    <div class="pbar">
+      <button class="pp" id="pp" type="button" aria-label="Play animation">▶</button>
+      <div class="chap" id="chap"></div>
+      <input class="scrub" id="scrub" type="range" min="0" step="0.05" value="0" aria-label="Animation time">
+      <span class="time" id="time">0:00 / 0:00</span>
+      <a class="ext" href="animation.html">Full screen ↗</a>
+    </div>
+  </figure>
+  <p class="tldr"><b>TL;DR</b> Softmax cross-entropy with one-hot labels drives every model toward the same simplex, fixed by the label space. We center and normalize the softmax outputs (<b>PSP</b>) or normalize the logits (<b>LSP</b>), and correct for new classes with a fixed linear map. We prove that the backward-compatibility inequalities then hold in expectation on the hypersphere. Independently trained models become compatible without compatibility losses, learned mappings or architecture changes.</p>
+
+  <section id="abstract">
+    <h2>Abstract</h2>
+    <p>Training modern AI models has become increasingly expensive, and updating deployed models can alter their internal feature representations, affecting applications built upon them. In retrieval systems, such updates often require a complete gallery re-indexing, which is computationally expensive at scale. Existing backward-compatibility methods enable direct comparison between representations produced by updated and earlier models, avoiding re-indexing. However, they typically require compatibility-specific training, learned mapping functions, or modifications to the model architecture, and often depend explicitly on the previous model. In this paper, we propose hyperspherical simplex representations derived from softmax outputs and logits for backward-compatible retrieval across independently trained models. These representations leverage the simplex structure induced by softmax cross-entropy training with one-hot labels, which provides a common geometric reference across model updates. Since this reference depends on the number of classes, introducing new ones during an update expands the simplex, thereby misaligning the prototypes of existing classes with their earlier counterparts. We therefore derive a deterministic linear transformation to restore their alignment. We further provide a theoretical analysis of the formal backward-compatibility definition, identifying two geometric conditions under which its inequalities hold in expectation, assuming von Mises–Fisher class distributions whose concentration increases across updates. Aligned regular-simplex representations satisfy these conditions, providing a theoretical basis for the proposed representations under the stated assumptions. Without using additional compatibility-specific losses, learned mappings, or modifications to the model architecture, the proposed representations achieve competitive results on standard compatibility benchmarks, including scenarios with expanded class sets, more expressive architectures, and independently trained models from public repositories.</p>
+  </section>
+
+  <section id="problem">
+    <h2>The compatibility problem</h2>
+    <p class="lead">A retrieval gallery is encoded once with the deployed model \(\phi^k\). When the model is updated to \(\phi^t\), new query features must be compared with the stored gallery features. Independently trained models do not share a feature space, so the comparison fails unless the whole gallery is re-encoded.</p>
+    <div class="box def"><span class="lbl">Definition 3.1 · Backward compatibility (Shen et al., 2020)</span>
+      <div class="eq">$$d\big(\mathbf h^t_i,\mathbf h^k_j\big)\le d\big(\mathbf h^k_i,\mathbf h^k_j\big)\;\;\forall\,(i,j):y_i=y_j\qquad(1a)$$</div>
+      <div class="eq">$$d\big(\mathbf h^t_i,\mathbf h^k_j\big)\ge d\big(\mathbf h^k_i,\mathbf h^k_j\big)\;\;\forall\,(i,j):y_i\ne y_j\qquad(1b)$$</div>
+      <p class="small muted" style="margin:0">New-to-old comparisons must group same-class items, and separate different classes, at least as well as old-to-old comparisons. Empirically, this is checked with the criterion \(M(\phi^t,\phi^k)>M(\phi^k,\phi^k)\) on a retrieval metric \(M\).</p>
+    </div>
+    <p>Most methods obtain compatibility by training the new model against the old one (e.g., BCT), by learning mappings between feature spaces, or by sharing a pre-allocated fixed classifier across updates. We need none of these: the reference is already provided by the label space.</p>
+  </section>
+
+  <section id="method">
+    <h2>Method</h2>
+    <div class="steps">
+      <div class="step"><span class="n">1</span><b>Center</b><p>Map softmax outputs from the probability simplex onto a regular simplex centered at the origin with \(\mathbf P_{k,k}=\mathbf I-\tfrac1{C^k}\mathbf J\). Logits are already centered and aligned with the same prototypes.</p></div>
+      <div class="step"><span class="n">2</span><b>Normalize</b><p>Project onto the unit hypersphere. Class prototypes \(\mathbf v_c=\mathbf e_c-\mathbf o\) are fixed by the one-hot coordinates, so they are the same for every model trained on the same classes.</p></div>
+      <div class="step"><span class="n">3</span><b>Correct</b><p>If the update adds classes, apply \(\mathbf P_{t,k}=[\,\mathbf P_{k,k}\mid\mathbf 0\,]\) to new queries. It is deterministic and data-free, and restores the alignment of the old-class prototypes.</p></div>
+    </div>
+    <div class="eq">$$\textbf{PSP:}\;\;\mathbf h^k=\frac{\mathbf P_{k,k}\,\sigma(\mathbf z^k)}{\big\|\mathbf P_{k,k}\,\sigma(\mathbf z^k)\big\|_2}\qquad\qquad\textbf{LSP:}\;\;\mathbf h^k=\frac{\mathbf z^k}{\|\mathbf z^k\|_2}$$</div>
+
+    <h3>Why the softmax gives a shared reference</h3>
+    <div class="two">
+      <div>
+        <p>Cross-entropy with one-hot labels drives softmax outputs to the vertices \(\mathbf e_c\) of the probability simplex \(\Delta^{C-1}\). These vertices depend only on the label space, not on the model. The simplex, however, lies in the non-negative orthant, so normalized softmax outputs of different classes are at most \(\pi/2\) apart.</p>
+        <p>Centering moves the simplex to the origin. The prototypes \(\mathbf v^k_c=\mathbf e_c-\mathbf o^k\) form a regular simplex with pairwise angle \(\arccos\!\big(-\tfrac1{C-1}\big)>\pi/2\). Under a logit unconstrained-features model, logits align with the same directions (Prop. 3.3), which gives LSP.</p>
+      </div>
+      <figure class="card">
+        <img src="static/img/fig1_simplex.png" width="840" height="840" alt="Probability simplex in three dimensions with softmax outputs near its vertices, the centered prototypes v1, v2, v3, and von Mises-Fisher distributions on the sphere." loading="lazy">
+        <figcaption>Fig. 1. Softmax outputs lie on \(\Delta^{C-1}\) (colored), are driven to its vertices, and are mapped by \(\mathbf P_{k,k}\) onto a regular simplex whose vertices define the class prototypes. After normalization, each class is modeled by a vMF distribution around its prototype.</figcaption>
+      </figure>
+    </div>
+
+    <h3>New classes rotate the simplex</h3>
+    <p>Adding classes moves the simplex center, so every existing prototype rotates by the same angle (Eq. 6), and the prototypes of the new classes are orthogonal to the old ones (Prop. 3.4). The correction \(\mathbf P_{t,k}\) centers the old-class coordinates and drops the new ones, which maps each updated prototype back onto its step-\(k\) counterpart (Prop. 3.5).</p>
+    <div class="eq">$$\theta_c^{k\to t}=\arccos\!\left(\sqrt{\frac{C^k-1}{C^k}\cdot\frac{C^t}{C^t-1}}\right)\qquad 2\!\to\!3:\ 30.0^\circ\quad 5\!\to\!10:\ 19.5^\circ$$</div>
+    <figure class="card" style="margin-top:12px">
+      <img src="static/img/fig4_expansion.png" width="2656" height="786" alt="Three update steps: a 1-simplex with two classes, a 2-simplex after adding a third class, and a 3-simplex after adding a fourth, with the prototypes of existing classes rotating and the correction mapping them back." loading="lazy">
+      <figcaption>Fig. 4. Prototypes across updates that add classes. Dashed arrows: the rotation caused by the new simplex. Solid black arrows: \(\mathbf P_{t,k}\), which restores alignment with the earlier step.</figcaption>
+    </figure>
+  </section>
+
+  <section id="theory">
+    <h2>When does backward compatibility hold?</h2>
+    <p class="lead">We model features on the unit hypersphere and derive closed-form expected cosine distances. Two geometric conditions then make both inequalities of Definition 3.1 hold in expectation.</p>
+    <div class="box assume"><span class="lbl">Assumptions on the hypersphere</span>
+      <ol type="i">
+        <li>the features of each class \(c\) are drawn independently from a von Mises–Fisher distribution \(\mathrm{vMF}(\boldsymbol\mu_c,\kappa_c)\) on \(\mathbb S^{d-1}\), whose mean direction \(\boldsymbol\mu_c\) is the class prototype;</li>
+        <li>the concentration of each class increases with the update, \(\kappa^t_c>\kappa^k_c\).</li>
+      </ol>
+    </div>
+    <div class="box theorem"><span class="lbl">Theorem 3.6 · Compatibility theorem</span>
+      Under (i) and (ii), the compatibility inequalities (1a) and (1b) are satisfied in expectation if
+      <ol type="a">
+        <li>corresponding class prototypes are <b>aligned</b> across updates, and</li>
+        <li>the angle between prototypes of different classes is <b>greater than \(\pi/2\)</b>.</li>
+      </ol>
+    </div>
+    <p>The proof rests on Lemma G.1. For independent \(\mathbf X_1\sim\mathrm{vMF}(\boldsymbol\mu_1,\kappa_1)\) and \(\mathbf X_2\sim\mathrm{vMF}(\boldsymbol\mu_2,\kappa_2)\),</p>
+    <div class="eq">$$\mathbb E\big[1-\mathbf X_1^\top\mathbf X_2\big]=1-m_d(\kappa_1)\,m_d(\kappa_2)\,\boldsymbol\mu_1^\top\boldsymbol\mu_2,\qquad m_d(\kappa)=\frac{I_{d/2}(\kappa)}{I_{d/2-1}(\kappa)},$$</div>
+    <p>where \(m_d(\kappa)\) is the mean resultant length, \(\mathbb E[\mathbf X]=m_d(\kappa)\,\boldsymbol\mu\), which increases with \(\kappa\). A more concentrated new model multiplies \(\boldsymbol\mu_1^\top\boldsymbol\mu_2\) by a larger factor. This brings aligned same-class pairs closer, but pushes different-class pairs apart only when \(\boldsymbol\mu_1^\top\boldsymbol\mu_2<0\).</p>
+    <div class="box theorem"><span class="lbl">Corollary 3.7 · Aligned regular simplex</span>
+      Prototypes forming a regular simplex centered at the origin have \(\boldsymbol\mu_i^\top\boldsymbol\mu_j=-\tfrac1{C-1}<0\). If they are also aligned across updates, both conditions hold. PSP satisfies this geometry by construction, and LSP does so under the logit-UFM: the centering \(\mathbf P_{k,k}\) provides (b), and the correction \(\mathbf P_{t,k}\) provides (a).
+    </div>
+
+    <h3>Explore the theorem</h3>
+    <p>Two classes on the hypersphere. Old features (\(\phi^k\)) follow \(\mathrm{vMF}(\boldsymbol\mu_c,\kappa^k)\) and new ones (\(\phi^t\)) follow \(\mathrm{vMF}(\boldsymbol\mu_c,\kappa^t)\). The bars are the exact expected cosine distances from Lemma G.1. Break one condition and watch the corresponding inequality fail.</p>
+    <div class="explorer" id="thx">
+      <div class="controls">
+        <span><span class="ctl-label">Preset</span><span class="seg" id="presets">
+          <button data-p="psp">PSP, 10 classes</button><button data-p="nocorr">PSP without \(\mathbf P_{t,k}\), 5 → 10</button><button data-p="acute">Acute prototypes</button>
+        </span></span>
+      </div>
+      <div class="thx">
+        <div>
+          <svg id="thsvg" viewBox="0 0 330 330" role="img" aria-label="Two class prototypes on the unit circle with old and new mean vectors"></svg>
+          <p class="small muted" style="margin:4px 0 0">Dashed arrows: \(\mathbb E[\mathbf X]\) for the old model. Solid arrows: the new model. Red: class 1, blue: class 2.</p>
+        </div>
+        <div>
+          <div class="sliders">
+            <label for="s-phi">angle \(\angle(\boldsymbol\mu_1,\boldsymbol\mu_2)\)</label><input id="s-phi" type="range" min="10" max="180" step="0.5"><output id="o-phi"></output>
+            <label for="s-delta">misalignment \(\delta\)</label><input id="s-delta" type="range" min="0" max="60" step="0.5"><output id="o-delta"></output>
+            <label for="s-kk">old concentration \(\kappa^k\)</label><input id="s-kk" type="range" min="-1" max="3" step="0.01"><output id="o-kk"></output>
+            <label for="s-kt">new concentration \(\kappa^t\)</label><input id="s-kt" type="range" min="-1" max="3" step="0.01"><output id="o-kt"></output>
+            <label for="s-d">dimension \(d\)</label><select id="s-d"><option>2</option><option selected>3</option><option>16</option><option>128</option><option>1024</option></select><output id="o-m"></output>
+          </div>
+          <div class="gauge" id="g1"></div>
+          <div class="gauge" id="g2"></div>
+          <div class="chips" id="chips" aria-live="polite"></div>
+        </div>
+      </div>
+      <p class="small muted" style="margin:10px 0 0">\(\delta\) rotates the new prototype of class 1 away from class 2, so only (1a) is affected. Presets use the regular-simplex angle \(\arccos(-1/(C-1))\) and the misalignment of Eq. 6. Margins are defined as in Appendix I: old→old minus new→old distance for (1a), and the reverse for (1b).</p>
+    </div>
+
+    <h3>Each operation provides one condition</h3>
+    <p>On CIFAR-10 (ResNet-18, 5 → 10 classes, 9 independently trained model pairs), removing either operation of PSP breaks the inequality that the theorem predicts.</p>
+    <div class="scroll">
+    <table class="compact">
+      <thead><tr><th>Representation</th><th>\(\mathbf P_{k,k}\)</th><th>\(\mathbf P_{t,k}\)</th><th>margin (1a)</th><th>margin (1b)</th><th>both hold</th></tr></thead>
+      <tbody>
+        <tr><td>Softmax</td><td>–</td><td>–</td><td>−11.1 ± 3.0</td><td>−5.5 ± 0.9</td><td>0 / 9</td></tr>
+        <tr><td>PSP without \(\mathbf P_{t,k}\)</td><td>✓</td><td>–</td><td>−56.8 ± 3.3</td><td>−14.2 ± 0.8</td><td>0 / 9</td></tr>
+        <tr><td>PSP without \(\mathbf P_{k,k}\)</td><td>–</td><td>✓<sup>*</sup></td><td class="second">+12.0 ± 1.9</td><td>−13.3 ± 1.0</td><td>0 / 9</td></tr>
+        <tr class="ours"><td>PSP</td><td>✓</td><td>✓</td><td class="best">+15.5 ± 2.5</td><td class="best">+3.9 ± 0.6</td><td class="best">9 / 9</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="small muted" style="margin-top:10px">Average margins of (1a) and (1b), ×10⁻³, mean ± std over 9 pairs. Positive values mean the inequality holds in expectation. <sup>*</sup>\(\mathbf P_{t,k}\) with \(\mathbf P_{k,k}\) replaced by the identity. The measured misalignment without correction is 18.8°–20.0°, against the 19.5° predicted by Eq. 6.</p>
+  </section>
+
+  <section id="results">
+    <h2>Results</h2>
+    <p>We evaluate on the standard compatibility benchmarks (extended classes, extended backbone, and both), and between independently pretrained public models. Compatibility across \(T\) updates is summarized by AC, the fraction of update pairs that satisfy the empirical criterion, and ACA, which averages the cross-model accuracy over compatible pairs only.</p>
+    <div class="stats">
+      <div class="stat"><div class="val"><s>0.11</s>0.39</div><div class="k">AC on CIFAR-100 after 50 updates: best prior method (CoReS) vs PSP (LSP: 0.36)</div></div>
+      <div class="stat"><div class="val"><s>0.20</s>1.00</div><div class="k">AC on ImageNet-1K with 5 updates: best prior method (BCT) vs PSP</div></div>
+      <div class="stat"><div class="val"><s>0</s>10 / 10</div><div class="k">compatible pairs among 5 public torchvision models, encoder features vs PSP</div></div>
+      <div class="stat"><div class="val">159×</div><div class="k">less gallery storage on Google Landmarks v2 with top-256 sparsification, with unchanged results</div></div>
+    </div>
+
+    <h3>Independently trained models from a public repository</h3>
+    <p>Five torchvision models pretrained on ImageNet-1K, of increasing capacity. They share nothing but the label space. Each entry is CMC@1 on ImageNet-1K, with queries from the row model and the gallery from the column model. Red entries fail the empirical criterion.</p>
+    <div class="explorer">
+      <div class="controls">
+        <span><span class="ctl-label">Features</span><span class="seg" id="mxseg"><button data-v="base">Encoder (baseline)</button><button data-v="psp">PSP</button><button data-v="lsp">LSP</button></span></span>
+      </div>
+      <div class="mx">
+        <svg id="matrix" viewBox="0 0 560 350" role="img" aria-label="Compatibility matrix of five torchvision models"></svg>
+        <div id="mxsum"></div>
+      </div>
+    </div>
+
+    <h3>Extended classes, many updates (CIFAR-100, ResNet-18)</h3>
+    <div class="scroll">
+    <table>
+      <thead>
+        <tr><th rowspan="2">Method</th><th colspan="3">2 steps</th><th colspan="3">5 steps</th><th colspan="3">20 steps</th><th colspan="3">50 steps</th></tr>
+        <tr><th>AC</th><th>AA</th><th>ACA</th><th>AC</th><th>AA</th><th>ACA</th><th>AC</th><th>AA</th><th>ACA</th><th>AC</th><th>AA</th><th>ACA</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Baseline</td><td>0</td><td>29.63</td><td>0</td><td>0</td><td>13.60</td><td>0</td><td>0</td><td>4.22</td><td>0</td><td>0</td><td>2.29</td><td>0</td></tr>
+        <tr><td>BCT</td><td class="best">1</td><td>40.64</td><td>35.51</td><td>0</td><td class="second">31.03</td><td>0</td><td>0</td><td>22.66</td><td>0</td><td>0.01</td><td>15.78</td><td>0.84</td></tr>
+        <tr><td>RACT</td><td class="best">1</td><td class="best">44.19</td><td class="best">45.09</td><td class="second">0.60</td><td>30.43</td><td>16.53</td><td>0.05</td><td>21.61</td><td>2.42</td><td>0</td><td>16.71</td><td>0</td></tr>
+        <tr><td>AdvBCT</td><td>0</td><td>35.32</td><td>0</td><td>0.40</td><td>26.13</td><td>11.67</td><td>0.02</td><td>19.79</td><td>0.19</td><td>0</td><td>14.70</td><td>0.03</td></tr>
+        <tr><td>LCE</td><td class="best">1</td><td class="second">43.48</td><td class="second">40.71</td><td>0.10</td><td class="best">32.63</td><td>4.63</td><td>0</td><td>20.95</td><td>0.25</td><td>0</td><td>13.81</td><td>0.03</td></tr>
+        <tr><td>CoReS</td><td class="best">1</td><td>40.94</td><td>35.21</td><td>0</td><td>29.63</td><td>0</td><td>0.12</td><td class="best">24.88</td><td>4.61</td><td>0.11</td><td class="best">23.50</td><td>3.91</td></tr>
+        <tr class="ours"><td>PSP</td><td class="best">1</td><td>36.31</td><td>29.05</td><td class="best">0.90</td><td>26.04</td><td class="second">21.76</td><td class="best">0.52</td><td>20.56</td><td class="second">12.99</td><td class="best">0.39</td><td>19.42</td><td class="second">10.76</td></tr>
+        <tr class="ours"><td>LSP</td><td class="best">1</td><td>41.14</td><td>36.38</td><td>0.70</td><td>30.36</td><td class="best">21.91</td><td class="second">0.44</td><td class="second">24.11</td><td class="best">13.26</td><td class="second">0.36</td><td class="second">22.68</td><td class="best">11.25</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="small muted" style="margin-top:10px">From Table 1. Dark and light blue mark the highest and second-highest value of each metric. ImageNet-1K and Google Landmarks v2 (Table 2), extended-backbone and combined benchmarks (Table 4), and Places365 and ViT sequences (Table 5) are in the paper.</p>
+
+    <h3>Takeaways</h3>
+    <ul class="clean">
+      <li><b>A common reference instead of pairwise constraints.</b> Methods that enforce compatibility with the previous model accumulate misalignment over many updates. PSP and LSP refer every model to the same simplex, so their advantage grows with the number of updates.</li>
+      <li><b>PSP vs LSP.</b> PSP collapses more tightly onto the simplex and is compatible more often. LSP keeps more within-class spread, and reaches higher accuracy (AA) on the standard benchmarks and under domain shift (Places365).</li>
+      <li><b>Public models, closed and open set.</b> On torchvision models, PSP reaches AC = 1 on ImageNet-1K for both the CNN and the ViT sequences, and AC = 0.90 / 1.00 on Places365. Encoder features reach AC = 0.</li>
+      <li><b>Scales with the number of classes.</b> Softmax is rank-preserving, so keeping the top-k entries keeps the ranking. Top-256 leaves PSP unchanged on ImageNet-1K and GLDv2, and raises LSP's ImageNet-1K AC from 0.50 to 0.70.</li>
+    </ul>
+  </section>
+
+  <section id="code">
+    <h2>Code</h2>
+    <p>The code will be released in the repository <a href="https://github.com/miccunifi/PSP">github.com/miccunifi/PSP</a>.</p>
+  </section>
+
+  <section id="limitations">
+    <h2>Limitations</h2>
+    <ul class="clean">
+      <li>PSP and LSP need models trained with softmax cross-entropy on one-hot labels. Self-supervised encoders can be used by training a linear classifier on a frozen backbone (Appendix L.1).</li>
+      <li>The mapping between class labels and output indices must be preserved across updates. A known reordering can be undone with a fixed permutation.</li>
+      <li>The guarantees hold in expectation under the vMF and increasing-concentration assumptions, which approximate learned representations rather than characterize them exactly.</li>
+    </ul>
+  </section>
+
+  <section id="citation">
+    <h2>Citation</h2>
+<div class="cite"><button class="copy" type="button">Copy</button>
+<pre id="bib">@article{ricci2026hyperspherical,
+  title   = {Hyperspherical Simplex Representations for Backward-Compatible Retrieval},
+  author  = {Ricci, Simone and Biondi, Niccol{\`o} and Pernici, Federico and Del Bimbo, Alberto},
+  journal = {arXiv preprint arXiv:XXXX.XXXXX},
+  year    = {2026}
+}</pre></div>
+  </section>
+
+  <footer>Media Integration and Communication Center (MICC), University of Florence<br><span class="small">Contact: <a href="mailto:simone.ricci@unifi.it">simone.ricci@unifi.it</a> · Animal icons in the animation: <a href="https://fontawesome.com">Font Awesome Free</a> (CC BY 4.0)</span></footer>
+</div>
+
+<script src="static/js/psp-anim.js"></script>
+<script>
+document.querySelector('.copy').onclick = function () {
+  navigator.clipboard.writeText(document.getElementById('bib').textContent).then(() => { this.textContent = 'Copied'; });
+};
+const segSync = (seg, v, attr = 'aria-pressed') => seg.querySelectorAll('button').forEach(b => b.setAttribute(attr, String(b.dataset.v === v || b.dataset.p === v)));
+
+/* ------------------------------- animation player ------------------------------- */
+(function () {
+  const canvas = document.getElementById('anim'), pp = document.getElementById('pp'), scrub = document.getElementById('scrub');
+  const chap = document.getElementById('chap'), time = document.getElementById('time');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fmt = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+  let userPaused = reduce, anim;
+  scrub.max = PSPAnim.duration;
+  PSPAnim.chapters.forEach(c => {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = c.label; b.dataset.start = c.start;
+    b.onclick = () => { anim.seek(c.start + .01); if (!reduce) { userPaused = false; anim.play(); } };
+    chap.append(b);
+  });
+  anim = PSPAnim.create(canvas, {
+    start: reduce ? 122.4 : 0,
+    onTime(t) {
+      scrub.value = t; time.textContent = fmt(t) + ' / ' + fmt(PSPAnim.duration);
+      chap.querySelectorAll('button').forEach(b => { const c = PSPAnim.chapters.find(x => x.start === +b.dataset.start); b.setAttribute('aria-current', String(t >= c.start && t < c.end)); });
+    },
+    onState(on) { pp.textContent = on ? '❚❚' : '▶'; pp.setAttribute('aria-label', on ? 'Pause animation' : 'Play animation'); },
+  });
+  PSPAnim.fontsReady().then(() => anim.draw());
+  pp.onclick = () => { userPaused = anim.playing; anim.toggle(); };
+  scrub.oninput = () => anim.seek(+scrub.value);
+  canvas.addEventListener('click', e => {
+    const r = canvas.getBoundingClientRect(), t = anim.tabAt(e.clientX - r.left, e.clientY - r.top);
+    if (t != null) { anim.seek(t + .01); userPaused = false; anim.play(); } else { userPaused = anim.playing; anim.toggle(); }
+  });
+  new ResizeObserver(() => anim.resize()).observe(canvas);
+  // play only while visible, unless the viewer paused it
+  new IntersectionObserver(([e]) => {
+    if (e.isIntersecting && !userPaused) anim.play(); else if (!e.isIntersecting) anim.pause();
+  }, { threshold: .35 }).observe(canvas);
+})();
+
+/* ------------------------------- theorem explorer ------------------------------- */
+(function () {
+  const $ = id => document.getElementById(id), NS = 'http://www.w3.org/2000/svg';
+  const S = { phi: 120, delta: 0, kk: 15, kt: 40, d: 3 };
+  const toK = v => Math.pow(10, v), fromK = k => Math.log10(k);
+  const sv = $('thsvg');
+  const el = (tag, at) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); sv.appendChild(e); return e; };
+  const tx = (x, y, s, at = {}) => { const e = el('text', Object.assign({ x, y }, at)); e.textContent = s; return e; };
+  const COL = { c1: '#d64f45', c2: '#3a7fc8', ink: '#1e2b3a', muted: '#5f6b7b', neu: '#7b5fc6', old: '#d08a2e' };
+  function arrowTo(x2, y2, col, dash, w) {
+    const cx = 165, cy = 175, a = Math.atan2(y2 - cy, x2 - cx), h = 10;
+    el('line', { x1: cx, y1: cy, x2: x2 - Math.cos(a) * h * .7, y2: y2 - Math.sin(a) * h * .7, stroke: col, 'stroke-width': w, 'stroke-dasharray': dash || '', 'stroke-linecap': 'round' });
+    el('path', { d: `M${x2},${y2} L${x2 - Math.cos(a - .4) * h},${y2 - Math.sin(a - .4) * h} L${x2 - Math.cos(a + .4) * h},${y2 - Math.sin(a + .4) * h}Z`, fill: col });
+  }
+  function bar(label, v, col) {
+    return `<div class="bar"><span style="color:${col};font-weight:600">${label}</span><span class="tr"><span class="fl" style="display:block;width:${Math.min(100, v / 2 * 100)}%;background:${col}"></span></span><span class="num">${v.toFixed(3)}</span></div>`;
+  }
+  function draw() {
+    const mk = PSPAnim.meanResultant(S.d, S.kk), mt = PSPAnim.meanResultant(S.d, S.kt);
+    const phi = S.phi * Math.PI / 180, del = S.delta * Math.PI / 180;
+    const Akk = 1 - mk * mk, Atk = 1 - mt * mk * Math.cos(del);
+    const Bkk = 1 - mk * mk * Math.cos(phi), Btk = 1 - mt * mk * Math.cos(Math.min(Math.PI, phi + del));
+    // diagram
+    sv.textContent = '';
+    const cx = 165, cy = 175, R = 120, P = (a, r) => [cx + r * Math.cos(a), cy - r * Math.sin(a)];
+    el('circle', { cx, cy, r: R, fill: '#f2f6fb', stroke: '#c6d6e7', 'stroke-width': 2 });
+    const a1 = Math.PI / 2 + phi / 2, a2 = Math.PI / 2 - phi / 2, at1 = a1 + del;
+    const g = P(a2 + Math.PI / 2, R), gl = P(a2 + Math.PI / 2, R * .8);   // label right of the dashed line, away from mu_1
+    el('line', { x1: cx, y1: cy, x2: g[0], y2: g[1], stroke: COL.muted, 'stroke-dasharray': '4 4' });
+    tx(gl[0] + 6, gl[1] + 4, 'π/2', { 'font-size': 14, fill: COL.muted, 'text-anchor': 'start', 'font-style': 'italic' });
+    const arc = (r, from, to, col, w) => { const p = P(from, r), q = P(to, r), large = Math.abs(to - from) > Math.PI ? 1 : 0, sweep = to > from ? 0 : 1; el('path', { d: `M${p[0]},${p[1]} A${r},${r} 0 ${large} ${sweep} ${q[0]},${q[1]}`, fill: 'none', stroke: col, 'stroke-width': w }); };
+    arc(34, a2, a1, COL.ink, 1.6);
+    const lp = P(Math.PI / 2, 48);
+    tx(lp[0], lp[1] + 4, S.phi.toFixed(0) + '°', { 'font-size': 14, 'text-anchor': 'middle', fill: S.phi > 90 ? '#3e9b6a' : '#c9563f', 'font-weight': 700, 'font-family': 'Inter' });
+    if (S.delta > .2) { arc(R * .62, a1, at1, '#c9563f', 2.5); const q = P(a1 + del / 2, R * .62 + 14); tx(q[0], q[1] + 5, 'δ', { 'font-size': 17, fill: '#c9563f', 'text-anchor': 'middle', 'font-style': 'italic' }); }
+    arrowTo(...P(a1, R * mk), COL.c1, '5 4', 2);
+    arrowTo(...P(a2, R * mk), COL.c2, '5 4', 2);
+    arrowTo(...P(at1, R * mt), COL.c1, '', 3.2);
+    arrowTo(...P(a2, R * mt), COL.c2, '', 3.2);
+    const l1 = P(a1, R + 20), l2 = P(a2, R + 20);
+    tx(l1[0], l1[1] + 6, 'μ₁', { 'font-size': 19, fill: COL.c1, 'text-anchor': 'middle', 'font-weight': 700 });
+    tx(l2[0], l2[1] + 6, 'μ₂', { 'font-size': 19, fill: COL.c2, 'text-anchor': 'middle', 'font-weight': 700 });
+    el('circle', { cx, cy, r: 3, fill: COL.muted });
+    // gauges
+    const ok1 = Atk <= Akk + 1e-12, ok2 = Btk >= Bkk - 1e-12, eq2 = Math.abs(Btk - Bkk) < 1e-9;
+    const g1 = $('g1'), g2 = $('g2');
+    g1.className = 'gauge ' + (ok1 ? 'ok' : 'no');
+    g1.innerHTML = `<div class="top"><span><b>Same class (1a)</b> <span class="muted">margin ${(Akk - Atk >= 0 ? '+' : '') + ((Akk - Atk) * 1e3).toFixed(1)}×10⁻³</span></span><span class="st">${ok1 ? '✓ holds' : '× violated'}</span></div>` +
+      bar('new → old', Atk, COL.neu) + bar('old → old', Akk, COL.old);
+    g2.className = 'gauge ' + (ok2 ? 'ok' : 'no');
+    g2.innerHTML = `<div class="top"><span><b>Different classes (1b)</b> <span class="muted">margin ${(Btk - Bkk >= 0 ? '+' : '') + ((Btk - Bkk) * 1e3).toFixed(1)}×10⁻³</span></span><span class="st">${eq2 ? '= equality' : ok2 ? '✓ holds' : '× violated'}</span></div>` +
+      bar('new → old', Btk, COL.neu) + bar('old → old', Bkk, COL.old);
+    const okA = S.delta < .25, okB = S.phi > 90, okK = S.kt > S.kk * 1.0001;
+    $('chips').innerHTML =
+      (okK ? '<span class="pill ok">✓ (ii) κᵗ &gt; κᵏ</span>' : '<span class="pill">(ii) κᵗ = κᵏ: equalities</span>') +
+      `<span class="pill ${okA ? 'ok' : 'no'}">${okA ? '✓' : '×'} (a) aligned</span>` +
+      `<span class="pill ${okB ? 'ok' : 'no'}">${okB ? '✓' : '×'} (b) angle &gt; π/2</span>`;
+    $('o-phi').textContent = S.phi.toFixed(1) + '°';
+    $('o-delta').textContent = S.delta.toFixed(1) + '°';
+    $('o-kk').textContent = 'κ = ' + (S.kk < 10 ? S.kk.toFixed(2) : S.kk.toFixed(0));
+    $('o-kt').textContent = 'κ = ' + (S.kt < 10 ? S.kt.toFixed(2) : S.kt.toFixed(0));
+    $('o-m').textContent = `m = ${mk.toFixed(2)} / ${mt.toFixed(2)}`;
+    $('o-m').title = 'mean resultant lengths m_d(κᵏ) / m_d(κᵗ)';
+  }
+  function syncInputs() {
+    $('s-phi').value = S.phi; $('s-delta').value = S.delta; $('s-kk').value = fromK(S.kk); $('s-kt').value = fromK(S.kt); $('s-d').value = S.d;
+  }
+  const PRE = {
+    psp: { phi: Math.acos(-1 / 9) * 180 / Math.PI, delta: 0 },
+    nocorr: { phi: Math.acos(-1 / 4) * 180 / Math.PI, delta: Math.acos(Math.sqrt(4 / 5 * 10 / 9)) * 180 / Math.PI },
+    acute: { phi: 60, delta: 0 },
+  };
+  const pres = $('presets');
+  pres.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    Object.assign(S, PRE[b.dataset.p]); segSync(pres, b.dataset.p); syncInputs(); draw();
+  });
+  [['s-phi', 'phi', v => v], ['s-delta', 'delta', v => v]].forEach(([id, k]) =>
+    $(id).addEventListener('input', e => { S[k] = +e.target.value; segSync(pres, ''); draw(); }));
+  // assumption (ii): the update never decreases the concentration, so kappa^t >= kappa^k
+  $('s-kk').addEventListener('input', e => { S.kk = toK(+e.target.value); if (S.kt < S.kk) { S.kt = S.kk; $('s-kt').value = fromK(S.kt); } draw(); });
+  $('s-kt').addEventListener('input', e => { S.kt = Math.max(S.kk, toK(+e.target.value)); $('s-kt').value = fromK(S.kt); draw(); });
+  $('s-d').addEventListener('change', e => { S.d = +e.target.value; draw(); });
+  Object.assign(S, PRE.psp); segSync(pres, 'psp'); syncInputs(); draw();
+})();
+
+/* ------------------------------- compatibility matrix ------------------------------- */
+(function () {
+  const M = {
+    base: [[27.26], [0.06, 66.33], [0.08, 0.10, 73.68], [0.12, 0.04, 0.17, 75.38], [0.09, 0.11, 0.10, 0.10, 80.86]],
+    psp: [[49.22], [69.22, 70.55], [73.15, 74.62, 76.51], [75.51, 76.53, 78.56, 78.31], [76.65, 77.83, 79.73, 79.42, 79.35]],
+    lsp: [[32.71], [40.83, 63.67], [43.16, 63.82, 73.21], [49.39, 66.57, 72.63, 75.30], [39.05, 62.95, 73.31, 74.41, 79.24]],
+  };
+  const SUM = { base: { AC: 0, AA: 21.63, ACA: 0 }, psp: { AC: 1, AA: 74.34, ACA: 76.12 }, lsp: { AC: 0.7, AA: 60.68, ACA: 37.61 } };
+  const NAMES = ['AlexNet', 'ResNet-50', 'RegNetX', 'ResNet-152', 'MaxViT-T'];
+  const svg = document.getElementById('matrix'), seg = document.getElementById('mxseg'), NS = 'http://www.w3.org/2000/svg';
+  const el = (tag, at) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); svg.appendChild(e); return e; };
+  const tx = (x, y, s, at = {}) => { const e = el('text', Object.assign({ x, y }, at)); e.textContent = s; return e; };
+  function draw(key) {
+    const m = M[key], x0 = 110, y0 = 34, cw = 86, ch = 58;
+    svg.textContent = '';
+    tx(x0 + 2.5 * cw, 18, 'gallery features from φᵏ', { 'text-anchor': 'middle', 'font-size': 13, fill: '#5f6b7b' });
+    tx(14, y0 + 2.5 * ch, 'query from φᵗ', { 'text-anchor': 'middle', 'font-size': 13, fill: '#5f6b7b', transform: `rotate(-90 14 ${y0 + 2.5 * ch})` });
+    let comp = 0;
+    NAMES.forEach((n, i) => {
+      tx(x0 - 8, y0 + i * ch + ch / 2 + 4, n, { 'text-anchor': 'end', 'font-size': 12.5, fill: '#5f6b7b' });
+      tx(x0 + i * cw + cw / 2, y0 + 5 * ch + 18, n, { 'text-anchor': 'middle', 'font-size': 12.5, fill: '#5f6b7b' });
+      for (let k = 0; k < 5; k++) {
+        const x = x0 + k * cw, y = y0 + i * ch;
+        if (k > i) { el('rect', { x: x + 2, y: y + 2, width: cw - 4, height: ch - 4, rx: 7, fill: '#f4f1ea' }); continue; }
+        const v = m[i][k], diag = i === k, ok = !diag && v > m[k][k];
+        if (ok) comp++;
+        el('rect', { x: x + 2, y: y + 2, width: cw - 4, height: ch - 4, rx: 7, fill: diag ? '#e8eef6' : ok ? '#e3f3ea' : '#fbe6e1', stroke: diag ? '#cfdcea' : ok ? '#c7e6d4' : '#f1c9bf' });
+        tx(x + cw / 2, y + ch / 2 + 5, v.toFixed(2), { 'text-anchor': 'middle', 'font-size': 14, 'font-weight': diag ? 700 : 600, fill: diag ? '#1e2b3a' : ok ? '#2c7a51' : '#a5432f' });
+      }
+    });
+    const s = SUM[key];
+    document.getElementById('mxsum').innerHTML =
+      `<div class="stat" style="margin-bottom:10px"><div class="val">${comp} / 10</div><div class="k">compatible update pairs</div></div>` +
+      `<div class="small muted">AC ${s.AC.toFixed(2)} · AA ${s.AA.toFixed(2)} · ACA ${s.ACA.toFixed(2)}<br>Diagonal: same-model retrieval. Off-diagonal: query model newer than gallery model.</div>`;
+  }
+  seg.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; segSync(seg, b.dataset.v); draw(b.dataset.v); });
+  segSync(seg, 'psp'); draw('psp');
+})();
+</script>
+</body>
+</html>
