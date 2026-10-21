@@ -8,10 +8,6 @@ This is the **official repository** of the paper
 "*Hyperspherical Simplex Representations for Backward-Compatible Retrieval*"
 by Simone Ricci\*, Niccolò Biondi\*, Federico Pernici and Alberto Del Bimbo (\*equal contribution).
 
-[![Animated overview](docs/static/videos/psp-overview.jpg)](https://miccunifi.github.io/PSP/)
-
-▶ **[Interactive animated overview](https://miccunifi.github.io/PSP/)** (also as [video](docs/static/videos/psp-overview.mp4)): a retrieval example of a model update (with CMC@1 from the paper); backward compatibility in feature space; logits and softmax outputs during training; PSP (centering and normalization) and LSP; the reference shared by independently trained models; the angular correction under class expansion; vMF class distributions and their increasing concentration; the compatibility theorem; top-k sparsification; results; and a summary.
-
 ## Overview
 
 ### Abstract
@@ -58,27 +54,7 @@ No compatibility losses, no learned mappings, no architecture changes, and no ac
 
 ## Code
 
-The code will be released soon. Meanwhile, the representations fit in a few lines of PyTorch:
-
-```python
-import torch
-import torch.nn.functional as F
-
-def centering(C):
-    # P_{k,k} = I - J / C  (Eq. 3)
-    return torch.eye(C) - torch.full((C, C), 1.0 / C)
-
-def psp(logits, C_gallery):
-    # Eq. 4; with more classes than the gallery model this is P_{t,k} = [P_{k,k} | 0]
-    p = logits.softmax(dim=-1)[..., :C_gallery]
-    return F.normalize(p @ centering(C_gallery).to(p), dim=-1)
-
-def lsp(logits, C_gallery):
-    # Eq. 5; logits are only corrected when new classes were added
-    if logits.shape[-1] > C_gallery:
-        logits = logits[..., :C_gallery] @ centering(C_gallery).to(logits)
-    return F.normalize(logits, dim=-1)
-```
+The code will be released soon...
 
 ## Citation
 ```bibtex
