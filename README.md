@@ -1,6 +1,6 @@
 # Hyperspherical Simplex Representations for Backward-Compatible Retrieval
 
-[![arXiv](https://img.shields.io/badge/arXiv-XXXX.XXXXX-b31b1b.svg)](https://arxiv.org/abs/XXXX.XXXXX)
+[![arXiv](https://img.shields.io/badge/arXiv-2610.29550-b31b1b.svg)](https://arxiv.org/abs/2610.29550)
 [![Project page](https://img.shields.io/badge/Project-Page-2e9c8a.svg)](https://miccunifi.github.io/PSP/)
 [![Code](https://img.shields.io/badge/Code-Coming%20Soon-lightgrey.svg)](#code)
 
@@ -61,7 +61,7 @@ The code will be released soon....
 @article{ricci2026hyperspherical,
   title   = {Hyperspherical Simplex Representations for Backward-Compatible Retrieval},
   author  = {Ricci, Simone and Biondi, Niccol{\`o} and Pernici, Federico and Del Bimbo, Alberto},
-  journal = {arXiv preprint arXiv:XXXX.XXXXX},
+  journal = {arXiv preprint arXiv:2610.29550},
   year    = {2026}
 }
 ```
